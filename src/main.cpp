@@ -15,10 +15,8 @@
 
 #define GAME_TICK_TIME 70
 
-// const char* wifi_ssid = "DexHunt2018";
-// const char* wifi_pw = "dexhunt2018";
-const char* wifi_ssid = "Halp!";
-const char* wifi_pw = "stripher";
+const char* wifi_ssid = "DexHunt2018";
+const char* wifi_pw = "dexhunt2018prop";
 ESP8266WebServer server(80);
 
 CRGB leds[NUM_LEDS];
@@ -37,7 +35,7 @@ bool gameStatus[NUM_LEDS] = {false};
 int breatheTimer = 0;
 int breatheDelta = 1;
 
-unsigned int gameTimerMs = 100000;
+unsigned int gameTimerMs = 50000000;
 
 void setup_wifi();
 void manage_wifi();
@@ -220,6 +218,9 @@ void manage_wifi() {
         if (!wifiIsConnected) {
             wifiIsConnected = true;
             server.begin();
+            Serial.write("Connected. Your IP address is: ");
+            Serial.write(WiFi.localIP());
+            Serial.write("\n");
         }
     } else if (wifiStatus == WL_DISCONNECTED) {
         if (wifiIsConnected) {
@@ -227,10 +228,5 @@ void manage_wifi() {
             server.stop();
         }
     }
-    //     Serial.println("");
-    //     Serial.println("Your ESP is connected!");  
-    //     Serial.println("Your IP address is: ");
-    //     Serial.println(WiFi.localIP());  
-    //  }
     server.handleClient();
 }
