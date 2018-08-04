@@ -1,4 +1,5 @@
 #define FASTLED_ESP8266_D1_PIN_ORDER
+#define FASTLED_ALLOW_INTERRUPTS 0
 
 #include <Arduino.h>
 #include <FastLED.h>
@@ -7,17 +8,16 @@
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
-// #include <ESP8266WebServer.h>
 #include <ESPAsyncWebServer.h>
 
 #define BREATHE_TIMER 85
 #define GLYPH_STARTUP_TIME 40
 
-#define GAME_TICK_TIME 5
+#define GAME_TICK_TIME 70
 
 const char* wifi_ssid = "DexHunt2018";
 const char* wifi_pw = "dexhunt2018prop";
-//ESP8266WebServer server(80);
+
 AsyncWebServer server(80);
 
 CRGB leds[NUM_LEDS];
@@ -62,7 +62,7 @@ void setup() {
 void loop() {
     manage_wifi();
 
-    EVERY_N_MILLISECONDS(70) {
+    EVERY_N_MILLISECONDS(GAME_TICK_TIME) {
         if (gameStillRunning()) {
             if (breatheDelta == 1 && breatheTimer < BREATHE_TIMER) {
                 currBreatheColorDisabled = CRGB(0, 20, 255);
@@ -117,7 +117,6 @@ void loop() {
         FastLED.show();
     }
     
-    // delay(GAME_TICK_TIME);
  
 }
 
@@ -125,10 +124,6 @@ void handleRoot(AsyncWebServerRequest *request) {
     request->send(200, "text/plain", "oh hello there");
     Serial.write("Dex Hunt 2018 Root");
 }
-
-void handleNotFound(){
-    // sendResponse(404, "Not Found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
-  }
 
 void endpoint_enableLed(AsyncWebServerRequest *request) {
     int idx = -1;
@@ -180,13 +175,11 @@ void endpoint_setTimeRemaining(AsyncWebServerRequest *request) {
         AsyncWebParameter* p = request->getParam(i);
         if (p->name() == "seconds") {
             seconds = p->value().toInt();
-            Serial.println("Param Name");
-            Serial.println(p->name());
-            Serial.println("Param Value");
-            Serial.println(p->value());
         }
     }
+
     gameTimerMs = seconds * 1000;
+
     Serial.write("Setting Time Remaining: ");
     serialWriteValue(gameTimerMs);
     Serial.write("\n");
@@ -213,17 +206,14 @@ bool gameStillRunning() {
         gameTimerMs = 0;
         Serial.write("Time is up!\n");
     }
+
     return (gameTimerMs != 0);
 }
 
 void setup_wifi() {
-//   WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_ssid, wifi_pw);
 
-//   server.client().setNoDelay(true);
-
   server.on("/", handleRoot);
-//   server.onNotFound(handleNotFound);
   server.on("/setEnabled", endpoint_enableLed);
   server.on("/setTimeRemaining", endpoint_setTimeRemaining);
   server.on("/getGameStatus", endpoint_getGameStatus);
